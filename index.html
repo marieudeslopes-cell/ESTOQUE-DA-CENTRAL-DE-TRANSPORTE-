@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Central de Transporte Hospitalar - Controle de Estoque</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; }
+
+        .header { display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: linear-gradient(135deg, #1e2a36 0%, #2c3e50 100%); color: white; flex-wrap: wrap; }
+        .logo-area { display: flex; align-items: center; gap: 15px; cursor: pointer; background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 40px; transition: 0.2s; }
+        .logo-area:hover { background: rgba(255,255,255,0.2); }
+        .logo-img { width: 48px; height: 48px; object-fit: contain; background: white; border-radius: 50%; padding: 4px; }
+        .logo-placeholder { width: 48px; height: 48px; background: #1abc9c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: white; }
+        .slogan-area { flex: 1; min-width: 200px; }
+        .slogan-text { font-size: 1.2rem; font-weight: 500; background: transparent; border: 1px dashed rgba(255,255,255,0.5); padding: 6px 12px; border-radius: 24px; width: 100%; color: white; outline: none; }
+        .slogan-text:focus { border-color: #1abc9c; background: rgba(0,0,0,0.2); }
+        .title-main { font-size: 1rem; opacity: 0.8; margin-top: 5px; }
+
+        .tabs { display: flex; background: #2c3e50; gap: 4px; padding: 0 20px; flex-wrap: wrap; }
+        .tab-btn { background: #34495e; border: none; padding: 12px 20px; color: white; font-weight: bold; cursor: pointer; border-radius: 12px 12px 0 0; transition: 0.2s; font-size: 0.85rem; }
+        .tab-btn.active { background: #1abc9c; color: #1e2a36; }
+        .tab-content { display: none; padding: 24px; animation: fade 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+        .sub-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+        .sub-tab-btn { background: #ecf0f1; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .sub-tab-btn.active { background: #1abc9c; color: white; }
+        .sub-tab-content { display: none; }
+        .sub-tab-content.active { display: block; }
+
+        h2 { color: #2c3e50; border-left: 6px solid #1abc9c; padding-left: 15px; margin-top: 0; }
+        .kpi-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
+        .kpi-card { background: #ecf0f1; border-radius: 20px; padding: 15px 25px; flex: 1; min-width: 150px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #1abc9c; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 12px; overflow: auto; display: block; }
+        th { background: #2c3e50; color: white; padding: 10px; position: sticky; top: 0; }
+        td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
+        .alert { background-color: #ffebee; color: #c0392b; font-weight: bold; }
+        .btn-excluir { background: #e74c3c; border: none; color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-limpar { background: #e67e22; border: none; color: white; padding: 8px 16px; border-radius: 24px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-export { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 24px; cursor: pointer; font-weight: bold; }
+
+        form { background: #f8f9fa; padding: 20px; border-radius: 16px; margin-top: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: end; }
+        form input, form select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; flex: 1 0 150px; }
+        form button { background: #1abc9c; border: none; padding: 8px 20px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+
+        footer { text-align: center; padding: 16px; font-size: 12px; color: #7f8c8d; border-top: 1px solid #ddd; }
+        @media (max-width: 700px) { .tabs { flex-direction: column; } .tab-btn { border-radius: 12px; } .header { flex-direction: column; text-align: center; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo-area" id="logoArea">
+            <img id="logoImg" class="logo-img" src="" alt="Logo" style="display: none;">
+            <div id="logoPlaceholder" class="logo-placeholder">🏥</div>
+        </div>
+        <div class="slogan-area">
+            <input type="text" id="sloganInput" class="slogan-text" placeholder="Slogan" value="Transporte humanizado, gestão eficiente de insumos">
+            <div class="title-main">Central de Transporte Interno Hospitalar</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="dashboard">📊 DASHBOARD</button>
+        <button class="tab-btn" data-tab="equipamentos">🛏️ Equipamentos</button>
+        <button class="tab-btn" data-tab="fardamentos">👕 Fardamentos</button>
+        <button class="tab-btn" data-tab="materiais">📦 Materiais</button>
+        <button class="tab-btn" data-tab="entradas">📥 ENTRADAS</button>
+        <button class="tab-btn" data-tab="saidas">📤 SAÍDAS</button>
+        <button class="tab-btn" data-tab="manutencao">🔧 Manutenção</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="tab-content active">
+        <h2>Painel da Central</h2>
+        <div class="kpi-grid" id="kpi-dash"></div>
+        <h3>📌 Alertas de Estoque Baixo</h3>
+        <table id="tabelaAlertas"><thead><tr><th>Categoria</th><th>Item</th><th>Saldo Atual</th><th>Mínimo</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- EQUIPAMENTOS (estoque) -->
+    <div id="equipamentos" class="tab-content">
+        <h2>Equipamentos de Transporte e Apoio</h2>
+        <div class="toolbar"><button id="limparEquipamentosBtn" class="btn-limpar">🗑️ Limpar equipamentos</button></div>
+        <table id="tabelaEquipamentos"><thead><tr><th>Código</th><th>Descrição</th><th>Qtd Total</th><th>Em Uso</th><th>Manutenção</th><th>Disponível</th><th>Mínimo</th><th>Ações</th></tr></thead><tbody></tbody></table>
+        <form id="formEquipamento"><input placeholder="Código" id="codEquip" required><input placeholder="Descrição" id="descEquip" required><input type="number" placeholder="Total" id="totalEquip" required><input type="number" placeholder="Em uso" id="usoEquip" value="0"><input type="number" placeholder="Manutenção" id="manutEquip" value="0"><input type="number" placeholder="Mínimo" id="minEquip" value="2"><button type="submit">Adicionar</button></form>
+    </div>
+
+    <!-- FARDAMENTOS (estoque) -->
+    <div id="fardamentos" class="tab-content">
+        <h2>Fardamentos e EPIs</h2>
+        <div class="toolbar"><button id="limparFardamentosBtn" class="btn-limpar">🗑️ Limpar fardamentos</button></div>
+        <table id="tabelaFardamentos"><thead><tr><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Quantidade</th><th>Mínimo</th><th>Status</th><th>Ações</th></tr></thead><tbody></tbody></table>
+        <form id="formFardamento"><input placeholder="Código" id="codFard" required><input placeholder="Descrição" id="descFard" required><select id="tamFard"><option>P</option><option>M</option><option>G</option><option>GG</option><option>Único</option></select><input type="number" placeholder="Quantidade" id="qtdFard" required><input type="number" placeholder="Mínimo" id="minFard" value="5"><button type="submit">Adicionar</button></form>
+    </div>
+
+    <!-- MATERIAIS DE APOIO (estoque) -->
+    <div id="materiais" class="tab-content">
+        <h2>Materiais de Apoio / Escritório / Limpeza</h2>
+        <div class="toolbar"><button id="limparMateriaisBtn" class="btn-limpar">🗑️ Limpar materiais</button></div>
+        <table id="tabelaMateriais"><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Mínimo</th><th>Status</th><th>Ações</th></tr></thead><tbody></tbody></table>
+        <form id="formMaterial"><input placeholder="Código" id="codMat" required><input placeholder="Descrição" id="descMat" required><input type="number" placeholder="Quantidade" id="qtdMat" required><input type="number" placeholder="Mínimo" id="minMat" value="10"><button type="submit">Adicionar</button></form>
+    </div>
+
+    <!-- ENTRADAS (sub-abas: Materiais, Fardamentos, Equipamentos) -->
+    <div id="entradas" class="tab-content">
+        <h2>Registro de Entradas</h2>
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" data-sub="entradasMateriais">📦 Materiais</button>
+            <button class="sub-tab-btn" data-sub="entradasFardamentos">👕 Fardamentos</button>
+            <button class="sub-tab-btn" data-sub="entradasEquipamentos">🛏️ Equipamentos</button>
+        </div>
+        <div id="entradasMateriais" class="sub-tab-content active">
+            <div class="toolbar"><button id="limparEntradasMateriaisBtn" class="btn-limpar">🗑️ Limpar entradas de materiais</button></div>
+            <table id="tabelaEntradasMateriais"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formEntradaMaterial"><input type="date" id="dataEntMat" required><input placeholder="Código do material" id="codEntMat" required><input placeholder="Descrição" id="descEntMat" required><input type="number" placeholder="Quantidade" id="qtdEntMat" required><input placeholder="Fornecedor" id="fornEntMat"><button type="submit">Registrar Entrada</button></form>
+        </div>
+        <div id="entradasFardamentos" class="sub-tab-content">
+            <div class="toolbar"><button id="limparEntradasFardamentosBtn" class="btn-limpar">🗑️ Limpar entradas de fardamentos</button></div>
+            <table id="tabelaEntradasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formEntradaFardamento"><input type="date" id="dataEntFard" required><input placeholder="Código do fardamento" id="codEntFard" required><input placeholder="Descrição" id="descEntFard" required><select id="tamEntFard"><option>P</option><option>M</option><option>G</option><option>GG</option></select><input type="number" placeholder="Quantidade" id="qtdEntFard" required><input placeholder="Fornecedor" id="fornEntFard"><button type="submit">Registrar Entrada</button></form>
+        </div>
+        <div id="entradasEquipamentos" class="sub-tab-content">
+            <div class="toolbar"><button id="limparEntradasEquipamentosBtn" class="btn-limpar">🗑️ Limpar entradas de equipamentos</button></div>
+            <table id="tabelaEntradasEquipamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formEntradaEquipamento"><input type="date" id="dataEntEquip" required><input placeholder="Código do equipamento" id="codEntEquip" required><input placeholder="Descrição" id="descEntEquip" required><input type="number" placeholder="Quantidade" id="qtdEntEquip" required><input placeholder="Fornecedor" id="fornEntEquip"><button type="submit">Registrar Entrada</button></form>
+        </div>
+    </div>
+
+    <!-- SAÍDAS (sub-abas: Materiais, Fardamentos, Equipamentos) -->
+    <div id="saidas" class="tab-content">
+        <h2>Registro de Saídas</h2>
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" data-sub="saidasMateriais">📦 Materiais</button>
+            <button class="sub-tab-btn" data-sub="saidasFardamentos">👕 Fardamentos</button>
+            <button class="sub-tab-btn" data-sub="saidasEquipamentos">🛏️ Equipamentos</button>
+        </div>
+        <div id="saidasMateriais" class="sub-tab-content active">
+            <div class="toolbar"><button id="limparSaidasMateriaisBtn" class="btn-limpar">🗑️ Limpar saídas de materiais</button></div>
+            <table id="tabelaSaidasMateriais"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Destino/Setor</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formSaidaMaterial"><input type="date" id="dataSaiMat" required><input placeholder="Código do material" id="codSaiMat" required><input placeholder="Descrição" id="descSaiMat" required><input type="number" placeholder="Quantidade" id="qtdSaiMat" required><input placeholder="Destino / Setor" id="destSaiMat" required><button type="submit">Registrar Saída</button></form>
+        </div>
+        <div id="saidasFardamentos" class="sub-tab-content">
+            <div class="toolbar"><button id="limparSaidasFardamentosBtn" class="btn-limpar">🗑️ Limpar saídas de fardamentos</button></div>
+            <table id="tabelaSaidasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Colaborador</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formSaidaFardamento"><input type="date" id="dataSaiFard" required><input placeholder="Código do fardamento" id="codSaiFard" required><input placeholder="Descrição" id="descSaiFard" required><select id="tamSaiFard"><option>P</option><option>M</option><option>G</option><option>GG</option></select><input type="number" placeholder="Quantidade" id="qtdSaiFard" required><input placeholder="Colaborador" id="colabSaiFard" required><button type="submit">Registrar Saída</button></form>
+        </div>
+        <div id="saidasEquipamentos" class="sub-tab-content">
+            <div class="toolbar"><button id="limparSaidasEquipamentosBtn" class="btn-limpar">🗑️ Limpar saídas de equipamentos</button></div>
+            <table id="tabelaSaidasEquipamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <form id="formSaidaEquipamento"><input type="date" id="dataSaiEquip" required><input placeholder="Código do equipamento" id="codSaiEquip" required><input placeholder="Descrição" id="descSaiEquip" required><input type="number" placeholder="Quantidade" id="qtdSaiEquip" required><input placeholder="Responsável" id="respSaiEquip" required><button type="submit">Registrar Saída</button></form>
+        </div>
+    </div>
+
+    <!-- MANUTENÇÃO (opcional, para equipamentos) -->
+    <div id="manutencao" class="tab-content">
+        <h2>Manutenção de Equipamentos</h2>
+        <div class="toolbar"><button id="limparManutencaoBtn" class="btn-limpar">🗑️ Limpar histórico</button></div>
+        <table id="tabelaManutencao"><thead><tr><th>Data</th><th>Equipamento</th><th>Tipo</th><th>Descrição</th><th>Responsável</th><th>Custo</th><th>Ações</th></tr></thead><tbody></tbody></table>
+        <form id="formManutencao"><input type="date" id="dataManut" required><input placeholder="Equipamento (código)" id="equipManut" required><select id="tipoManut"><option>Limpeza</option><option>Preventiva</option><option>Corretiva</option></select><input placeholder="Descrição" id="descManut" required><input placeholder="Responsável" id="respManut" required><input type="number" placeholder="Custo (R$)" id="custoManut" value="0"><button type="submit">Registrar</button></form>
+    </div>
+    <footer>Sistema offline • Dados salvos automaticamente</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // ---------- ESTRUTURA DE DADOS ----------
+    let equipamentos = [];   // {cod, desc, total, uso, manutencao, minimo}
+    let fardamentos = [];    // {cod, desc, tamanho, qtd, minimo}
+    let materiais = [];      // {cod, desc, qtd, minimo}
+
+    let entradasMateriais = [];
+    let entradasFardamentos = [];
+    let entradasEquipamentos = [];
+    let saidasMateriais = [];
+    let saidasFardamentos = [];
+    let saidasEquipamentos = [];
+    let manutencoes = [];
+
+    // Dados iniciais de exemplo
+    function inicializarDados() {
+        if(equipamentos.length===0) equipamentos = [
+            {cod:"EQ-01", desc:"Maca hospitalar", total:10, uso:3, manutencao:1, minimo:2},
+            {cod:"EQ-02", desc:"Cadeira de rodas", total:8, uso:2, manutencao:1, minimo:2}
+        ];
+        if(fardamentos.length===0) fardamentos = [
+            {cod:"FARD-01", desc:"Jaleco", tamanho:"M", qtd:15, minimo:5},
+            {cod:"FARD-02", desc:"Luva procedimento", tamanho:"G", qtd:50, minimo:20}
+        ];
+        if(materiais.length===0) materiais = [
+            {cod:"MAT-01", desc:"Prancheta A4", qtd:20, minimo:5},
+            {cod:"MAT-02", desc:"Caneta azul", qtd:100, minimo:20}
+        ];
+        if(entradasMateriais.length===0) entradasMateriais = [
+            {data:"2026-05-02", cod:"MAT-01", desc:"Prancheta A4", qtd:20, fornecedor:"Fornecedor X"},
+            {data:"2026-05-10", cod:"MAT-02", desc:"Caneta azul", qtd:100, fornecedor:"Papelaria Y"}
+        ];
+        if(entradasFardamentos.length===0) entradasFardamentos = [
+            {data:"2026-05-01", cod:"FARD-01", desc:"Jaleco", tamanho:"M", qtd:15, fornecedor:"Uniformes Ltda"},
+            {data:"2026-05-05", cod:"FARD-02", desc:"Luva procedimento", tamanho:"G", qtd:50, fornecedor:"MedSuprimentos"}
+        ];
+        if(entradasEquipamentos.length===0) entradasEquipamentos = [
+            {data:"2026-05-03", cod:"EQ-01", desc:"Maca hospitalar", qtd:10, fornecedor:"HospEquip"},
+            {data:"2026-05-07", cod:"EQ-02", desc:"Cadeira de rodas", qtd:8, fornecedor:"OrtoBrasil"}
+        ];
+        if(saidasMateriais.length===0) saidasMateriais = [
+            {data:"2026-05-15", cod:"MAT-01", desc:"Prancheta A4", qtd:4, destino:"UTI"},
+            {data:"2026-05-16", cod:"MAT-02", desc:"Caneta azul", qtd:25, destino:"Administração"}
+        ];
+        if(saidasFardamentos.length===0) saidasFardamentos = [
+            {data:"2026-05-10", cod:"FARD-01", desc:"Jaleco", tamanho:"M", qtd:3, colaborador:"Carlos Silva"},
+            {data:"2026-05-12", cod:"FARD-02", desc:"Luva procedimento", tamanho:"G", qtd:10, colaborador:"Equipe Enfermagem"}
+        ];
+        if(saidasEquipamentos.length===0) saidasEquipamentos = [
+            {data:"2026-05-18", cod:"EQ-01", desc:"Maca hospitalar", qtd:2, responsavel:"Plantão A"},
+            {data:"2026-05-20", cod:"EQ-02", desc:"Cadeira de rodas", qtd:1, responsavel:"Reabilitação"}
+        ];
+        if(manutencoes.length===0) manutencoes = [
+            {data:"2026-05-22", equipamento:"EQ-01", tipo:"Preventiva", desc:"Lubrificação", responsavel:"José", custo:50}
+        ];
+    }
+
+    // Persistência localStorage
+    function salvarDados() {
+        localStorage.setItem('hosp_equipamentos', JSON.stringify(equipamentos));
+        localStorage.setItem('hosp_fardamentos', JSON.stringify(fardamentos));
+        localStorage.setItem('hosp_materiais', JSON.stringify(materiais));
+        localStorage.setItem('hosp_entradasMateriais', JSON.stringify(entradasMateriais));
+        localStorage.setItem('hosp_entradasFardamentos', JSON.stringify(entradasFardamentos));
+        localStorage.setItem('hosp_entradasEquipamentos', JSON.stringify(entradasEquipamentos));
+        localStorage.setItem('hosp_saidasMateriais', JSON.stringify(saidasMateriais));
+        localStorage.setItem('hosp_saidasFardamentos', JSON.stringify(saidasFardamentos));
+        localStorage.setItem('hosp_saidasEquipamentos', JSON.stringify(saidasEquipamentos));
+        localStorage.setItem('hosp_manutencoes', JSON.stringify(manutencoes));
+        localStorage.setItem('hosp_slogan', document.getElementById('sloganInput').value);
+        const logoImg = document.getElementById('logoImg');
+        if(logoImg.src && !logoImg.src.includes('blob')) localStorage.setItem('hosp_logo_url', logoImg.src);
+    }
+    function carregarDados() {
+        const items = ['equipamentos','fardamentos','materiais','entradasMateriais','entradasFardamentos','entradasEquipamentos','saidasMateriais','saidasFardamentos','saidasEquipamentos','manutencoes'];
+        items.forEach(item => {
+            let data = localStorage.getItem('hosp_'+item);
+            if(data) window[item] = JSON.parse(data);
+        });
+        let slogan = localStorage.getItem('hosp_slogan');
+        if(slogan) document.getElementById('sloganInput').value = slogan;
+        let logo = localStorage.getItem('hosp_logo_url');
+        if(logo) {
+            document.getElementById('logoImg').src = logo;
+            document.getElementById('logoImg').style.display = 'inline-block';
+            document.getElementById('logoPlaceholder').style.display = 'none';
+        }
+        if(equipamentos.length===0) inicializarDados();
+    }
+
+    // Funções auxiliares para atualizar saldos a partir de entradas/saídas
+    function recalcularMateriais() {
+        let mapa = {};
+        entradasMateriais.forEach(e => { if(!mapa[e.cod]) mapa[e.cod]={desc:e.desc, qtd:0}; mapa[e.cod].qtd += e.qtd; });
+        saidasMateriais.forEach(s => { if(mapa[s.cod]) mapa[s.cod].qtd -= s.qtd; else mapa[s.cod]={desc:s.desc, qtd:-s.qtd}; });
+        for(let cod in mapa) {
+            let idx = materiais.findIndex(m => m.cod === cod);
+            if(idx>=0) materiais[idx] = {cod, desc:mapa[cod].desc, qtd:mapa[cod].qtd, minimo:materiais[idx].minimo};
+            else materiais.push({cod, desc:mapa[cod].desc, qtd:mapa[cod].qtd, minimo:5});
+        }
+        materiais = materiais.filter(m => m.cod && m.desc);
+    }
+    function recalcularFardamentos() {
+        let mapa = {};
+        entradasFardamentos.forEach(e => { let key=e.cod+'|'+e.tamanho; if(!mapa[key]) mapa[key]={cod:e.cod, desc:e.desc, tamanho:e.tamanho, qtd:0}; mapa[key].qtd += e.qtd; });
+        saidasFardamentos.forEach(s => { let key=s.cod+'|'+s.tamanho; if(mapa[key]) mapa[key].qtd -= s.qtd; else mapa[key]={cod:s.cod, desc:s.desc, tamanho:s.tamanho, qtd:-s.qtd}; });
+        for(let key in mapa) {
+            let obj = mapa[key];
+            let idx = fardamentos.findIndex(f => f.cod===obj.cod && f.tamanho===obj.tamanho);
+            if(idx>=0) fardamentos[idx] = {cod:obj.cod, desc:obj.desc, tamanho:obj.tamanho, qtd:obj.qtd, minimo:fardamentos[idx].minimo};
+            else fardamentos.push({cod:obj.cod, desc:obj.desc, tamanho:obj.tamanho, qtd:obj.qtd, minimo:5});
+        }
+        fardamentos = fardamentos.filter(f => f.cod);
+    }
+    function recalcularEquipamentos() {
+        let mapa = {};
+        entradasEquipamentos.forEach(e => { if(!mapa[e.cod]) mapa[e.cod]={desc:e.desc, total:0, uso:0, manut:0}; mapa[e.cod].total += e.qtd; });
+        saidasEquipamentos.forEach(s => { if(!mapa[s.cod]) mapa[s.cod]={desc:s.desc, total:0, uso:0, manut:0}; mapa[s.cod].uso += s.qtd; });
+        manutencoes.forEach(m => { if(mapa[m.equipamento]) mapa[m.equipamento].manut += 1; });
+        for(let cod in mapa) {
+            let idx = equipamentos.findIndex(e => e.cod === cod);
+            let minimo = idx>=0 ? equipamentos[idx].minimo : 2;
+            if(idx>=0) equipamentos[idx] = {cod, desc:mapa[cod].desc, total:mapa[cod].total, uso:mapa[cod].uso, manutencao:mapa[cod].manut, minimo};
+            else equipamentos.push({cod, desc:mapa[cod].desc, total:mapa[cod].total, uso:mapa[cod].uso, manutencao:mapa[cod].manut, minimo});
+        }
+        equipamentos = equipamentos.filter(e => e.cod);
+    }
+
+    // Atualização completa da UI
+    function atualizarTudo() {
+        recalcularMateriais(); recalcularFardamentos(); recalcularEquipamentos();
+
+        // KPIs
+        let totalEquip = equipamentos.reduce((a,e)=>a+e.total,0);
+        let totalDisponivelEquip = equipamentos.reduce((a,e)=>a+(e.total - e.uso - e.manutencao),0);
+        let totalFard = fardamentos.reduce((a,f)=>a+f.qtd,0);
+        let totalMat = materiais.reduce((a,m)=>a+m.qtd,0);
+        let alertasCount = [...equipamentos.filter(e=>(e.total-e.uso-e.manutencao)<e.minimo), ...fardamentos.filter(f=>f.qtd<f.minimo), ...materiais.filter(m=>m.qtd<m.minimo)].length;
+        document.getElementById("kpi-dash").innerHTML = `
+            <div class="kpi-card"><div class="kpi-value">${totalEquip}</div>Total Equipamentos</div>
+            <div class="kpi-card"><div class="kpi-value">${totalDisponivelEquip}</div>Equip. Disponíveis</div>
+            <div class="kpi-card"><div class="kpi-value">${totalFard}</div>Fardamentos</div>
+            <div class="kpi-card"><div class="kpi-value">${totalMat}</div>Materiais</div>
+            <div class="kpi-card"><div class="kpi-value" style="color:#e74c3c">${alertasCount}</div>Alertas</div>
+        `;
+        // Tabela alertas
+        let alertasBody = document.querySelector("#tabelaAlertas tbody");
+        alertasBody.innerHTML = "";
+        let todosAlertas = [
+            ...equipamentos.filter(e=>(e.total-e.uso-e.manutencao)<e.minimo).map(e=>({cat:"Equipamento",item:e.cod+" - "+e.desc, saldo:e.total-e.uso-e.manutencao, min:e.minimo})),
+            ...fardamentos.filter(f=>f.qtd<f.minimo).map(f=>({cat:"Fardamento",item:f.cod+" ("+f.tamanho+") - "+f.desc, saldo:f.qtd, min:f.minimo})),
+            ...materiais.filter(m=>m.qtd<m.minimo).map(m=>({cat:"Material",item:m.cod+" - "+m.desc, saldo:m.qtd, min:m.minimo}))
+        ];
+        if(todosAlertas.length===0) alertasBody.innerHTML = "<tr><td colspan='4'>Nenhum alerta</td></tr>";
+        else todosAlertas.forEach(a => alertasBody.innerHTML += `<tr class="alert"><td>${a.cat}</td><td>${a.item}</td><td>${a.saldo}</td><td>${a.min}</td></tr>`);
+
+        // Tabelas de estoque
+        renderTabelaEquipamentos();
+        renderTabelaFardamentos();
+        renderTabelaMateriais();
+        // Tabelas de movimentações
+        renderTabelaGenerica("entradasMateriais", "#tabelaEntradasMateriais tbody", ["data","cod","desc","qtd","fornecedor"]);
+        renderTabelaGenerica("entradasFardamentos", "#tabelaEntradasFardamentos tbody", ["data","cod","desc","tamanho","qtd","fornecedor"]);
+        renderTabelaGenerica("entradasEquipamentos", "#tabelaEntradasEquipamentos tbody", ["data","cod","desc","qtd","fornecedor"]);
+        renderTabelaGenerica("saidasMateriais", "#tabelaSaidasMateriais tbody", ["data","cod","desc","qtd","destino"]);
+        renderTabelaGenerica("saidasFardamentos", "#tabelaSaidasFardamentos tbody", ["data","cod","desc","tamanho","qtd","colaborador"]);
+        renderTabelaGenerica("saidasEquipamentos", "#tabelaSaidasEquipamentos tbody", ["data","cod","desc","qtd","responsavel"]);
+        renderTabelaGenerica("manutencoes", "#tabelaManutencao tbody", ["data","equipamento","tipo","desc","responsavel","custo"]);
+
+        reattachExcluirButtons();
+        salvarDados();
+    }
+
+    function renderTabelaEquipamentos() {
+        let tbody = document.querySelector("#tabelaEquipamentos tbody");
+        tbody.innerHTML = "";
+        equipamentos.forEach((e,idx) => {
+            let disp = e.total - e.uso - e.manutencao;
+            tbody.innerHTML += `<tr class="${disp<e.minimo?'alert':''}">
+                <td>${e.cod}</td><td>${e.desc}</td><td>${e.total}</td><td>${e.uso}</td><td>${e.manutencao}</td>
+                <td>${disp}</td><td>${e.minimo}</td>
+                <td><button class="btn-excluir" data-tipo="equip" data-idx="${idx}">🗑️ Excluir</button></td>
+            </tr>`;
+        });
+    }
+    function renderTabelaFardamentos() {
+        let tbody = document.querySelector("#tabelaFardamentos tbody");
+        tbody.innerHTML = "";
+        fardamentos.forEach((f,idx) => {
+            let status = f.qtd < f.minimo ? "ALERTA" : "OK";
+            tbody.innerHTML += `<tr class="${f.qtd<f.minimo?'alert':''}">
+                <td>${f.cod}</td><td>${f.desc}</td><td>${f.tamanho}</td><td>${f.qtd}</td><td>${f.minimo}</td><td>${status}</td>
+                <td><button class="btn-excluir" data-tipo="fard" data-idx="${idx}">🗑️ Excluir</button></td>
+            </tr>`;
+        });
+    }
+    function renderTabelaMateriais() {
+        let tbody = document.querySelector("#tabelaMateriais tbody");
+        tbody.innerHTML = "";
+        materiais.forEach((m,idx) => {
+            let status = m.qtd < m.minimo ? "ALERTA" : "OK";
+            tbody.innerHTML += `<tr class="${m.qtd<m.minimo?'alert':''}">
+                <td>${m.cod}</td><td>${m.desc}</td><td>${m.qtd}</td><td>${m.minimo}</td><td>${status}</td>
+                <td><button class="btn-excluir" data-tipo="mat" data-idx="${idx}">🗑️ Excluir</button></td>
+            </tr>`;
+        });
+    }
+    function renderTabelaGenerica(arrayName, selector, fields) {
+        let tbody = document.querySelector(selector);
+        if(!tbody) return;
+        tbody.innerHTML = "";
+        window[arrayName].forEach((item, idx) => {
+            let row = "<tr>";
+            fields.forEach(f => row += `<td>${item[f] !== undefined ? item[f] : ''}</td>`);
+            row += `<td><button class="btn-excluir" data-tipo="${arrayName}" data-idx="${idx}">🗑️ Excluir</button></td></tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function reattachExcluirButtons() {
+        document.querySelectorAll('.btn-excluir').forEach(btn => {
+            btn.removeEventListener('click', handleExcluir);
+            btn.addEventListener('click', handleExcluir);
+        });
+    }
+    function handleExcluir(e) {
+        let btn = e.currentTarget;
+        let tipo = btn.getAttribute('data-tipo');
+        let idx = parseInt(btn.getAttribute('data-idx'));
+        if(confirm("Excluir permanentemente?")) {
+            if(tipo === 'equip') equipamentos.splice(idx,1);
+            else if(tipo === 'fard') fardamentos.splice(idx,1);
+            else if(tipo === 'mat') materiais.splice(idx,1);
+            else if(window[tipo]) window[tipo].splice(idx,1);
+            atualizarTudo();
+        }
+    }
+
+    // Limpar funções
+    function limparArray(arrName) { if(confirm(`Limpar todos os registros de ${arrName}?`)) { window[arrName] = []; atualizarTudo(); } }
+
+    // Eventos de formulários
+    function setupFormularios() {
+        document.getElementById("formEquipamento").addEventListener("submit", e=>{
+            e.preventDefault();
+            equipamentos.push({cod:document.getElementById("codEquip").value, desc:document.getElementById("descEquip").value, total:parseInt(document.getElementById("totalEquip").value), uso:parseInt(document.getElementById("usoEquip").value), manutencao:parseInt(document.getElementById("manutEquip").value), minimo:parseInt(document.getElementById("minEquip").value)});
+            atualizarTudo(); e.target.reset();
+        });
+        document.getElementById("formFardamento").addEventListener("submit", e=>{
+            e.preventDefault();
+            fardamentos.push({cod:document.getElementById("codFard").value, desc:document.getElementById("descFard").value, tamanho:document.getElementById("tamFard").value, qtd:parseInt(document.getElementById("qtdFard").value), minimo:parseInt(document.getElementById("minFard").value)});
+            atualizarTudo(); e.target.reset();
+        });
+        document.getElementById("formMaterial").addEventListener("submit", e=>{
+            e.preventDefault();
+            materiais.push({cod:document.getElementById("codMat").value, desc:document.getElementById("descMat").value, qtd:parseInt(document.getElementById("qtdMat").value), minimo:parseInt(document.getElementById("minMat").value)});
+            atualizarTudo(); e.target.reset();
+        });
+        // Entradas e saídas
+        document.getElementById("formEntradaMaterial").addEventListener("submit", e=>{ e.preventDefault(); entradasMateriais.push({data:document.getElementById("dataEntMat").value, cod:document.getElementById("codEntMat").value, desc:document.getElementById("descEntMat").value, qtd:parseInt(document.getElementById("qtdEntMat").value), fornecedor:document.getElementById("fornEntMat").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formEntradaFardamento").addEventListener("submit", e=>{ e.preventDefault(); entradasFardamentos.push({data:document.getElementById("dataEntFard").value, cod:document.getElementById("codEntFard").value, desc:document.getElementById("descEntFard").value, tamanho:document.getElementById("tamEntFard").value, qtd:parseInt(document.getElementById("qtdEntFard").value), fornecedor:document.getElementById("fornEntFard").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formEntradaEquipamento").addEventListener("submit", e=>{ e.preventDefault(); entradasEquipamentos.push({data:document.getElementById("dataEntEquip").value, cod:document.getElementById("codEntEquip").value, desc:document.getElementById("descEntEquip").value, qtd:parseInt(document.getElementById("qtdEntEquip").value), fornecedor:document.getElementById("fornEntEquip").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formSaidaMaterial").addEventListener("submit", e=>{ e.preventDefault(); saidasMateriais.push({data:document.getElementById("dataSaiMat").value, cod:document.getElementById("codSaiMat").value, desc:document.getElementById("descSaiMat").value, qtd:parseInt(document.getElementById("qtdSaiMat").value), destino:document.getElementById("destSaiMat").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formSaidaFardamento").addEventListener("submit", e=>{ e.preventDefault(); saidasFardamentos.push({data:document.getElementById("dataSaiFard").value, cod:document.getElementById("codSaiFard").value, desc:document.getElementById("descSaiFard").value, tamanho:document.getElementById("tamSaiFard").value, qtd:parseInt(document.getElementById("qtdSaiFard").value), colaborador:document.getElementById("colabSaiFard").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formSaidaEquipamento").addEventListener("submit", e=>{ e.preventDefault(); saidasEquipamentos.push({data:document.getElementById("dataSaiEquip").value, cod:document.getElementById("codSaiEquip").value, desc:document.getElementById("descSaiEquip").value, qtd:parseInt(document.getElementById("qtdSaiEquip").value), responsavel:document.getElementById("respSaiEquip").value}); atualizarTudo(); e.target.reset(); });
+        document.getElementById("formManutencao").addEventListener("submit", e=>{ e.preventDefault(); manutencoes.push({data:document.getElementById("dataManut").value, equipamento:document.getElementById("equipManut").value, tipo:document.getElementById("tipoManut").value, desc:document.getElementById("descManut").value, responsavel:document.getElementById("respManut").value, custo:parseFloat(document.getElementById("custoManut").value)}); atualizarTudo(); e.target.reset(); });
+
+        // Botões limpar
+        document.getElementById("limparEquipamentosBtn")?.addEventListener("click",()=>limparArray("equipamentos"));
+        document.getElementById("limparFardamentosBtn")?.addEventListener("click",()=>limparArray("fardamentos"));
+        document.getElementById("limparMateriaisBtn")?.addEventListener("click",()=>limparArray("materiais"));
+        document.getElementById("limparEntradasMateriaisBtn")?.addEventListener("click",()=>limparArray("entradasMateriais"));
+        document.getElementById("limparEntradasFardamentosBtn")?.addEventListener("click",()=>limparArray("entradasFardamentos"));
+        document.getElementById("limparEntradasEquipamentosBtn")?.addEventListener("click",()=>limparArray("entradasEquipamentos"));
+        document.getElementById("limparSaidasMateriaisBtn")?.addEventListener("click",()=>limparArray("saidasMateriais"));
+        document.getElementById("limparSaidasFardamentosBtn")?.addEventListener("click",()=>limparArray("saidasFardamentos"));
+        document.getElementById("limparSaidasEquipamentosBtn")?.addEventListener("click",()=>limparArray("saidasEquipamentos"));
+        document.getElementById("limparManutencaoBtn")?.addEventListener("click",()=>limparArray("manutencoes"));
+    }
+
+    // Sub-abas
+    function setupSubAbas() {
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let targetId = btn.getAttribute('data-sub');
+                let parent = btn.closest('.tab-content').querySelectorAll('.sub-tab-content');
+                parent.forEach(p => p.classList.remove('active'));
+                document.getElementById(targetId).classList.add('active');
+                document.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    }
+
+    // Exportar CSV (simples)
+    function exportarCSV() {
+        let csv = [["RELATÓRIO CENTRAL DE TRANSPORTE"]];
+        csv.push(["Equipamentos","Código","Descrição","Total","Uso","Manutenção","Disponível","Mínimo"]);
+        equipamentos.forEach(e => csv.push([e.cod,e.desc,e.total,e.uso,e.manutencao,e.total-e.uso-e.manutencao,e.minimo]));
+        csv.push([],"Fardamentos","Código","Descrição","Tamanho","Quantidade","Mínimo");
+        fardamentos.forEach(f => csv.push([f.cod,f.desc,f.tamanho,f.qtd,f.minimo]));
+        csv.push([],"Materiais","Código","Descrição","Quantidade","Mínimo");
+        materiais.forEach(m => csv.push([m.cod,m.desc,m.qtd,m.minimo]));
+        csv.push([],"Entradas Materiais","Data","Código","Descrição","Qtd","Fornecedor");
+        entradasMateriais.forEach(e => csv.push([e.data,e.cod,e.desc,e.qtd,e.fornecedor]));
+        csv.push([],"Saídas Materiais","Data","Código","Descrição","Qtd","Destino");
+        saidasMateriais.forEach(s => csv.push([s.data,s.cod,s.desc,s.qtd,s.destino]));
+        // continua para outros...
+        let blob = new Blob(["\uFEFF"+csv.map(r=>r.join(",")).join("\n")], {type:"text/csv"});
+        let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "central_transporte.csv"; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    // Logo upload
+    function setupLogo() {
+        const logoArea = document.getElementById('logoArea');
+        const input = document.createElement('input'); input.type='file'; input.accept='image/*';
+        logoArea.addEventListener('click',()=>input.click());
+        input.addEventListener('change',e=>{
+            if(e.target.files[0]){ const r=new FileReader(); r.onload=ev=>{ document.getElementById('logoImg').src=ev.target.result; document.getElementById('logoImg').style.display='inline-block'; document.getElementById('logoPlaceholder').style.display='none'; salvarDados(); }; r.readAsDataURL(e.target.files[0]); }
+        });
+    }
+
+    // Abas principais
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById(btn.getAttribute("data-tab")).classList.add("active");
+        });
+    });
+
+    carregarDados();
+    setupFormularios();
+    setupSubAbas();
+    setupLogo();
+    document.getElementById('sloganInput').addEventListener('change', salvarDados);
+    document.getElementById('exportarCSV')?.addEventListener('click', exportarCSV);
+    atualizarTudo();
+</script>
+</body>
+</html>
