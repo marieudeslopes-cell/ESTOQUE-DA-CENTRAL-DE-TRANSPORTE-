@@ -37,6 +37,10 @@
         .kpi-card { background: #ecf0f1; border-radius: 20px; padding: 15px 25px; flex: 1; min-width: 150px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .kpi-value { font-size: 32px; font-weight: bold; color: #1abc9c; }
 
+        .charts-row { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 30px; }
+        .chart-box { flex: 1; min-width: 280px; background: #fff; padding: 15px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .chart-box canvas { max-height: 300px; width: 100%; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 12px; overflow: auto; display: block; }
         th { background: #2c3e50; color: white; padding: 10px; position: sticky; top: 0; }
         td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
@@ -77,11 +81,21 @@
         <button class="tab-btn" data-tab="manutencao">🔧 Manutenção</button>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- DASHBOARD com gráficos -->
     <div id="dashboard" class="tab-content active">
         <h2>Painel da Central</h2>
         <div class="kpi-grid" id="kpi-dash"></div>
-        <h3>📌 Alertas de Estoque Baixo</h3>
+        <div class="charts-row">
+            <div class="chart-box">
+                <h3>📊 Disponibilidade de Equipamentos</h3>
+                <canvas id="graficoEquipamentos" width="400" height="250"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>🥧 Distribuição do Estoque (Unidades)</h3>
+                <canvas id="graficoDistribuicao" width="400" height="250"></canvas>
+            </div>
+        </div>
+        <h3>⚠️ Alertas de Estoque Baixo</h3>
         <table id="tabelaAlertas"><thead><tr><th>Categoria</th><th>Item</th><th>Saldo Atual</th><th>Mínimo</th></tr></thead><tbody></tbody></table>
     </div>
 
@@ -109,7 +123,7 @@
         <form id="formMaterial"><input placeholder="Código" id="codMat" required><input placeholder="Descrição" id="descMat" required><input type="number" placeholder="Quantidade" id="qtdMat" required><input type="number" placeholder="Mínimo" id="minMat" value="10"><button type="submit">Adicionar</button></form>
     </div>
 
-    <!-- ENTRADAS (sub-abas: Materiais, Fardamentos, Equipamentos) -->
+    <!-- ENTRADAS (sub-abas) -->
     <div id="entradas" class="tab-content">
         <h2>Registro de Entradas</h2>
         <div class="sub-tabs">
@@ -124,7 +138,7 @@
         </div>
         <div id="entradasFardamentos" class="sub-tab-content">
             <div class="toolbar"><button id="limparEntradasFardamentosBtn" class="btn-limpar">🗑️ Limpar entradas de fardamentos</button></div>
-            <table id="tabelaEntradasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <table id="tabelaEntradasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Fornecedor</th><th>Ações</th></table></thead><tbody></tbody></table>
             <form id="formEntradaFardamento"><input type="date" id="dataEntFard" required><input placeholder="Código do fardamento" id="codEntFard" required><input placeholder="Descrição" id="descEntFard" required><select id="tamEntFard"><option>P</option><option>M</option><option>G</option><option>GG</option></select><input type="number" placeholder="Quantidade" id="qtdEntFard" required><input placeholder="Fornecedor" id="fornEntFard"><button type="submit">Registrar Entrada</button></form>
         </div>
         <div id="entradasEquipamentos" class="sub-tab-content">
@@ -134,7 +148,7 @@
         </div>
     </div>
 
-    <!-- SAÍDAS (sub-abas: Materiais, Fardamentos, Equipamentos) -->
+    <!-- SAÍDAS (sub-abas) -->
     <div id="saidas" class="tab-content">
         <h2>Registro de Saídas</h2>
         <div class="sub-tabs">
@@ -149,17 +163,17 @@
         </div>
         <div id="saidasFardamentos" class="sub-tab-content">
             <div class="toolbar"><button id="limparSaidasFardamentosBtn" class="btn-limpar">🗑️ Limpar saídas de fardamentos</button></div>
-            <table id="tabelaSaidasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Colaborador</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <table id="tabelaSaidasFardamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Tamanho</th><th>Qtd</th><th>Colaborador</th><th>Ações</th></tr></thead><tbody></tbody></tr>
             <form id="formSaidaFardamento"><input type="date" id="dataSaiFard" required><input placeholder="Código do fardamento" id="codSaiFard" required><input placeholder="Descrição" id="descSaiFard" required><select id="tamSaiFard"><option>P</option><option>M</option><option>G</option><option>GG</option></select><input type="number" placeholder="Quantidade" id="qtdSaiFard" required><input placeholder="Colaborador" id="colabSaiFard" required><button type="submit">Registrar Saída</button></form>
         </div>
         <div id="saidasEquipamentos" class="sub-tab-content">
             <div class="toolbar"><button id="limparSaidasEquipamentosBtn" class="btn-limpar">🗑️ Limpar saídas de equipamentos</button></div>
-            <table id="tabelaSaidasEquipamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></table>
+            <table id="tabelaSaidasEquipamentos"><thead><tr><th>Data</th><th>Código</th><th>Descrição</th><th>Qtd</th><th>Responsável</th><th>Ações</th></tr></thead><tbody></tbody></tr>
             <form id="formSaidaEquipamento"><input type="date" id="dataSaiEquip" required><input placeholder="Código do equipamento" id="codSaiEquip" required><input placeholder="Descrição" id="descSaiEquip" required><input type="number" placeholder="Quantidade" id="qtdSaiEquip" required><input placeholder="Responsável" id="respSaiEquip" required><button type="submit">Registrar Saída</button></form>
         </div>
     </div>
 
-    <!-- MANUTENÇÃO (opcional, para equipamentos) -->
+    <!-- MANUTENÇÃO -->
     <div id="manutencao" class="tab-content">
         <h2>Manutenção de Equipamentos</h2>
         <div class="toolbar"><button id="limparManutencaoBtn" class="btn-limpar">🗑️ Limpar histórico</button></div>
@@ -188,15 +202,18 @@
     function inicializarDados() {
         if(equipamentos.length===0) equipamentos = [
             {cod:"EQ-01", desc:"Maca hospitalar", total:10, uso:3, manutencao:1, minimo:2},
-            {cod:"EQ-02", desc:"Cadeira de rodas", total:8, uso:2, manutencao:1, minimo:2}
+            {cod:"EQ-02", desc:"Cadeira de rodas", total:8, uso:2, manutencao:1, minimo:2},
+            {cod:"EQ-03", desc:"Prancha de transferência", total:6, uso:1, manutencao:0, minimo:1}
         ];
         if(fardamentos.length===0) fardamentos = [
             {cod:"FARD-01", desc:"Jaleco", tamanho:"M", qtd:15, minimo:5},
-            {cod:"FARD-02", desc:"Luva procedimento", tamanho:"G", qtd:50, minimo:20}
+            {cod:"FARD-02", desc:"Luva procedimento", tamanho:"G", qtd:50, minimo:20},
+            {cod:"FARD-03", desc:"Máscara N95", tamanho:"Único", qtd:30, minimo:15}
         ];
         if(materiais.length===0) materiais = [
             {cod:"MAT-01", desc:"Prancheta A4", qtd:20, minimo:5},
-            {cod:"MAT-02", desc:"Caneta azul", qtd:100, minimo:20}
+            {cod:"MAT-02", desc:"Caneta azul", qtd:100, minimo:20},
+            {cod:"MAT-03", desc:"Papel A4", qtd:10, minimo:5}
         ];
         if(entradasMateriais.length===0) entradasMateriais = [
             {data:"2026-05-02", cod:"MAT-01", desc:"Prancheta A4", qtd:20, fornecedor:"Fornecedor X"},
@@ -298,7 +315,7 @@
         equipamentos = equipamentos.filter(e => e.cod);
     }
 
-    // Atualização completa da UI
+    // Atualização completa da UI com gráficos
     function atualizarTudo() {
         recalcularMateriais(); recalcularFardamentos(); recalcularEquipamentos();
 
@@ -315,6 +332,37 @@
             <div class="kpi-card"><div class="kpi-value">${totalMat}</div>Materiais</div>
             <div class="kpi-card"><div class="kpi-value" style="color:#e74c3c">${alertasCount}</div>Alertas</div>
         `;
+
+        // GRÁFICO DE BARRAS - Disponibilidade de equipamentos
+        const ctxBar = document.getElementById('graficoEquipamentos').getContext('2d');
+        if(window.barChart) window.barChart.destroy();
+        window.barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: equipamentos.map(e => e.cod + ' - ' + e.desc.substring(0,15)),
+                datasets: [
+                    { label: 'Total', data: equipamentos.map(e => e.total), backgroundColor: '#3498db' },
+                    { label: 'Em uso', data: equipamentos.map(e => e.uso), backgroundColor: '#f39c12' },
+                    { label: 'Manutenção', data: equipamentos.map(e => e.manutencao), backgroundColor: '#e74c3c' },
+                    { label: 'Disponível', data: equipamentos.map(e => e.total - e.uso - e.manutencao), backgroundColor: '#1abc9c' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        // GRÁFICO DE PIZZA - Distribuição do estoque (unidades)
+        const totalUnidades = totalEquip + totalFard + totalMat;
+        const ctxPie = document.getElementById('graficoDistribuicao').getContext('2d');
+        if(window.pieChart) window.pieChart.destroy();
+        window.pieChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Equipamentos', 'Fardamentos', 'Materiais'],
+                datasets: [{ data: [totalEquip, totalFard, totalMat], backgroundColor: ['#1abc9c', '#3498db', '#f39c12'], borderWidth: 0 }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
         // Tabela alertas
         let alertasBody = document.querySelector("#tabelaAlertas tbody");
         alertasBody.innerHTML = "";
@@ -464,7 +512,7 @@
         });
     }
 
-    // Exportar CSV (simples)
+    // Exportar CSV
     function exportarCSV() {
         let csv = [["RELATÓRIO CENTRAL DE TRANSPORTE"]];
         csv.push(["Equipamentos","Código","Descrição","Total","Uso","Manutenção","Disponível","Mínimo"]);
@@ -477,7 +525,6 @@
         entradasMateriais.forEach(e => csv.push([e.data,e.cod,e.desc,e.qtd,e.fornecedor]));
         csv.push([],"Saídas Materiais","Data","Código","Descrição","Qtd","Destino");
         saidasMateriais.forEach(s => csv.push([s.data,s.cod,s.desc,s.qtd,s.destino]));
-        // continua para outros...
         let blob = new Blob(["\uFEFF"+csv.map(r=>r.join(",")).join("\n")], {type:"text/csv"});
         let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "central_transporte.csv"; a.click(); URL.revokeObjectURL(a.href);
     }
